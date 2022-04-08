@@ -4,13 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class WorksLikes extends Model
+class GoodsCategory extends Model
 {
     use HasFactory;
 
-    protected $table = 'works_likes';
+    protected $table = 'goods_category';
     protected $primaryKey = 'id';
-    // public $timestamps = false;
-
-
+//    public $timestamps = false;
 }

@@ -27,6 +27,9 @@ Route::group(['middleware' => 'auth:api'],function (){
     // 获取用户消息详情
     Route::get('me/message_detail','MeController@getMessageDetail')->name('api.me.message_detail');
 
+    // 新增商品
+//    Route::post('goods/add','GoodsController@addGoods')->name('api.goods.add');
+
     // 获取系统设置value值
     Route::get('system/get_value','MeController@getSystemSettingValue')->name('api.system.get_value');
 

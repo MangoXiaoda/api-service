@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class UserSign extends Model
+class GoodsImg extends Model
 {
     use HasFactory;
 
-    protected $table = 'user_sign';
+    protected $table = 'goods_images';
     protected $primaryKey = 'id';
 //    public $timestamps = false;
 
