@@ -9,9 +9,14 @@
 namespace App\Services;
 
 use App\Enums\Cache\KeyPrefix;
+use App\Enums\Order\VerifyCode;
 use App\Handlers\WechatConfigHandler;
+use App\Models\OrderLog;
+use App\Models\OrderSub;
+use App\Models\WxPay;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use function EasyWeChat\Kernel\Support\generate_sign;
 
 class WeChatService extends Service
 {
@@ -136,6 +141,118 @@ class WeChatService extends Service
             return r_result($label, '内容违规违法,请删除后重试');
 
         return r_result(200);
+    }
+
+
+    public function pay($data)
+    {
+        $gs_id     = $data['gs_id'] ?? 0;   // 商品id
+        $buy_num   = $data['buy_num'] ?? 0; // 购买数量
+        $user_info = $data['user_info'];    // 用户信息
+        $sub_sn    = self::generateSubSn(); // 子订单号
+
+        if (!$sub_sn)
+            return r_result(201, '系统错误，请重试');
+
+        if (!$user_info)
+            return r_result(202, '请先登录');
+
+        if (!$gs_id)
+            return r_result(202, '缺少商品id');
+
+        $gs_info = GoodsService::queryOneGoods($gs_id);
+        if (!$gs_info)
+            return r_result(203, '购买的商品不存在');
+
+        $price = $gs_info['price'];
+
+        if (!$price)
+            return r_result(204, '商品价格信息错误');
+
+        // 购买数量检测
+        if (!$buy_num || !is_numeric($buy_num))
+            return r_result(205, '请选择正确的购买数量');
+
+        if ($gs_info['sales'] >= $gs_info['total'])
+            return r_result(206, '商品数量不足,无法购买');
+
+        $open_id = $user_info['weapp_openid'] ?? ''; // 用户open_id
+        if (!$open_id)
+            return r_result(207, '系统错误，请重试');
+
+        // 写入操作日志
+        $log = [
+            'sub_sn'        => $sub_sn,
+            'action'        => VerifyCode::USER_PAY_CREATE,  // 用户创建支付
+            'operator_id'   => $user_info['id'],             // 用户id
+            'operator_name' => $auth_user['nickname'] ?? '', // 用户姓名
+            'operator_type' => 3,                            // 操作者类型:1系统,2后台管理员3买家
+            'msg'           => '创建支付订单',
+            'client_ip'     => request()->ip()
+        ];
+        OrderLog::query()->create($log);
+
+        // 实例化支付类
+        $payment = (new WechatConfigHandler())->pay();
+        $result = $payment->order->unify([
+            'body'         => '美香园超市',
+            'out_trade_no' => $sub_sn,
+            'open_id'      => $open_id,
+            'trade_type'   => 'JSAPI', // 请对应换成你的支付方式对应的值类型
+            'total_fee'    => $price * 100
+        ]);
+
+        // 如果成功生成统一下单的订单，那么进行二次签名
+        if ($result['return_code'] === 'SUCCESS') {
+            // 二次签名的参数必须与下面相同
+            $params = [
+                'appId'     => config('wechat.payment.default.app_id'),
+                'timeStamp' => strval(time()),
+                'nonceStr'  => $result['nonce_str'],
+                'package'   => 'prepay_id=' . $result['prepay_id'],
+                'signType'  => 'MD5'
+            ];
+
+            // 生成 paySign 签名
+            $params['paySign'] = generate_sign($params, config('wechat.payment.default.key'));
+
+            // 记录二次签名
+            $sign_data = [
+                'sub_sn'     => $sub_sn,
+                'user_id'    => $user_info['id'],
+                'app_id'     => $params['appId'],
+                'time_stamp' => $params['timeStamp'],
+                'nonce_str'  => $params['nonceStr'],
+                'package'    => $params['package'],
+                'sign_type'  => $params['signType'],
+                'pay_sign'   => $params['paySign']
+            ];
+
+            WxPay::query()->create($sign_data);
+
+
+
+        }
+
+    }
+
+    /**
+     * 生成子单订单号
+     * 子单：主单固定字符No+Ymd+rand尾号+rand(10000001,99999999)
+     * 例如：LM 20210601 10000021
+     * @return string
+     */
+    public static function generateSubSn()
+    {
+        // 检测生成的订单号是否重复，重复则重新生成
+        while (true) {
+            $sub_sn = 'No' . date('Ymd', time()) . rand(10000001, 99999999);
+            $count = OrderSub::query()->where('sub_sn', $sub_sn)->count();
+            if (!$count)
+                break;
+        }
+
+        return $sub_sn;
     }
 
 }

@@ -143,6 +143,23 @@ class GoodsService extends Service
     }
 
     /**
+     * 查询一条商品信息
+     * @param $id
+     * @return array
+     */
+    public static function queryOneGoods($id)
+    {
+        if (!$id)
+            return [];
+
+        $info = Goods::query()
+            ->where('id', $id)
+            ->first();
+
+        return $info ? $info->toArray() : [];
+    }
+
+    /**
      * 设置搜索参数
      * @param $params
      */
