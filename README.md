@@ -6,10 +6,9 @@
 #### 软件架构
 软件架构说明
 
-
 #### 安装教程
 
-1.  git@github.com:MangoXiaoda/api-service.git
+1.  git clone git@github.com:MangoXiaoda/api-service.git
 2.  cp .env.example .env
 3.  composer install / composer update nothing
 4.  php artisan key:generate
