@@ -11,10 +11,14 @@ namespace App\Services;
 use App\Enums\Cache\KeyPrefix;
 use App\Enums\Order\VerifyCode;
 use App\Handlers\WechatConfigHandler;
+use App\Models\Goods;
+use App\Models\OrderGoods;
 use App\Models\OrderLog;
 use App\Models\OrderSub;
 use App\Models\WxPay;
+use Doctrine\DBAL\Query\QueryException;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use function EasyWeChat\Kernel\Support\generate_sign;
 
@@ -143,7 +147,14 @@ class WeChatService extends Service
         return r_result(200);
     }
 
-
+    /**
+     * 支付
+     * @param $data
+     * @return array|false|string
+     * @throws \EasyWeChat\Kernel\Exceptions\InvalidArgumentException
+     * @throws \EasyWeChat\Kernel\Exceptions\InvalidConfigException
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function pay($data)
     {
         $gs_id     = $data['gs_id'] ?? 0;   // 商品id
@@ -176,6 +187,7 @@ class WeChatService extends Service
         if ($gs_info['sales'] >= $gs_info['total'])
             return r_result(206, '商品数量不足,无法购买');
 
+        $user_id = $user_info['id'];
         $open_id = $user_info['weapp_openid'] ?? ''; // 用户open_id
         if (!$open_id)
             return r_result(207, '系统错误，请重试');
@@ -184,7 +196,7 @@ class WeChatService extends Service
         $log = [
             'sub_sn'        => $sub_sn,
             'action'        => VerifyCode::USER_PAY_CREATE,  // 用户创建支付
-            'operator_id'   => $user_info['id'],             // 用户id
+            'operator_id'   => $user_id,                     // 用户id
             'operator_name' => $auth_user['nickname'] ?? '', // 用户姓名
             'operator_type' => 3,                            // 操作者类型:1系统,2后台管理员3买家
             'msg'           => '创建支付订单',
@@ -219,7 +231,7 @@ class WeChatService extends Service
             // 记录二次签名
             $sign_data = [
                 'sub_sn'     => $sub_sn,
-                'user_id'    => $user_info['id'],
+                'user_id'    => $user_id,
                 'app_id'     => $params['appId'],
                 'time_stamp' => $params['timeStamp'],
                 'nonce_str'  => $params['nonceStr'],
@@ -230,10 +242,46 @@ class WeChatService extends Service
 
             WxPay::query()->create($sign_data);
 
+            try {
+                DB::beginTransaction();
 
+                // 写入子单信息表
+                OrderSub::query()->create([
+                    'sub_sn'       => $sub_sn,
+                    'user_id'      => $user_id,
+                    'goods_amount' => $price,
+                    'paid_amount'  => $price,
+                    'code'         => $this->generateVerifyCode(),
+                ]);
 
+                // 写入订单商品表
+                OrderGoods::query()->create([
+                    'sub_sn'      => $sub_sn,
+                    'goods_id'    => $gs_id,
+                    'goods_price' => $price,
+                    'buy_num'     => $buy_num,
+                    'real_price'  => $price,
+                    'title'       => $gs_info['title'],
+                    'thumb'       => delWebPrefixUrl($gs_info['thumb'])
+                ]);
+
+                // 累加商品已售数量
+                Goods::query()->where('id', $gs_id)->increment('sales', $buy_num);
+
+                DB::commit();
+            } catch (QueryException $e) {
+
+                DB::rollBack();
+                Log::error('写入订单数据失败', ['message' => $e->getMessage()]);
+
+            }
+
+            return r_result(200, '创建订单成功');
+
+        } else {
+
+            return r_result(201, '创建订单失败');
         }
-
     }
 
     /**
@@ -253,6 +301,15 @@ class WeChatService extends Service
         }
 
         return $sub_sn;
+    }
+
+    /**
+     * 生成订单核销码
+     * @return string
+     */
+    public static function generateVerifyCode()
+    {
+        return date('Ymdh', time()) . rand(100000001,999999999);
     }
 
 }
