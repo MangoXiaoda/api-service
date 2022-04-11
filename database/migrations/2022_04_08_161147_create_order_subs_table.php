@@ -21,6 +21,7 @@ return new class extends Migration
             $table->decimal('paid_amount',10,2)->default('0.00')->comment('实付总额');
             $table->tinyInteger('status')->default('0')->comment('订单状态:0正常,1取消,2删除');
             $table->tinyInteger('pay_status')->default('0')->comment('支付状态：0待付款,1已付款');
+            $table->timestamp('pay_time')->nullable()->comment('支付时间');
             $table->unsignedBigInteger('code')->nullable()->comment('核销码');
             $table->tinyInteger('code_status')->default('1')->comment('核销码状态：0过期,1正常');
             $table->string('remark')->nullable()->comment('备注');

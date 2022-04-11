@@ -31,5 +31,17 @@ class WeChatController extends Controller
         return response()->json($this->type(ResponseCode::REQUEST_SUCCESS)->httpResponse($res['data'], '操作成功'));
     }
 
+    /**
+     * 微信支付回调
+     * @param Request $request
+     * @throws \EasyWeChat\Kernel\Exceptions\Exception
+     */
+    public function wxPayNotify(Request $request)
+    {
+        $service = new WeChatService();
+
+        return $service->wxPayNotify();
+    }
+
 
 }

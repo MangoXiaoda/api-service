@@ -16,6 +16,7 @@ use App\Models\OrderGoods;
 use App\Models\OrderLog;
 use App\Models\OrderSub;
 use App\Models\WxPay;
+use Carbon\Carbon;
 use Doctrine\DBAL\Query\QueryException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -310,6 +311,61 @@ class WeChatService extends Service
     public static function generateVerifyCode()
     {
         return date('Ymdh', time()) . rand(100000001,999999999);
+    }
+
+    /**
+     * 微信支付回调
+     * @throws \EasyWeChat\Kernel\Exceptions\Exception
+     */
+    public function wxPayNotify()
+    {
+        // 实例化支付类
+        $payment = (new WechatConfigHandler())->pay();
+        $response = $payment->handlePaidNotify(function ($message, $fail) {
+
+            // 记录 回调信息
+            Log::info('wxPayNotify：' . LjJencode($message));
+            $sub_sn = $message['out_trade_no'] ?? '';
+
+            // 子订单号不存在，告知微信用户不用再通知了
+            if (!$sub_sn)
+                return true;
+
+            $sub_order = OrderSub::query()
+                ->where('sub_sn', $sub_sn)
+                ->first();
+
+            // 检测如果订单不存在，告知微信不用再通知了
+            if (!$sub_order)
+                return true;
+
+            $sub_order = $sub_order->toArray();
+            // 如果订单已支付，告知微信不用再通知了
+            if ($sub_order['pay_status'] == 1)
+                return true;
+
+            if ($message['return_code'] === 'SUCCESS') {
+
+                if ($message['result_code'] === 'SUCCESS') {
+
+                    // 修改订单状态
+                    OrderSub::query()->where('sub_su', $sub_sn)->update([
+                        'pay_status' => 1,
+                        'pay_time' => Carbon::now()
+                    ]);
+
+                }
+
+            } else {
+
+                Log::info($sub_sn . '通信失败，请稍后再通知我');
+                return $fail('通信失败，请稍后再通知我');
+            }
+
+            return true;
+        });
+
+        return true;
     }
 
 }

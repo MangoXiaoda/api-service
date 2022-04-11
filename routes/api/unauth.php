@@ -16,6 +16,9 @@ Route::post('auth/login','AuthController@weappLogin')->name('api.auth.login');
 // Dcat_Admin 要求的话题分类数据接口路由
 Route::get('topics/dcat_category_list','WorksController@getDcatAdminTopicsCategoryList')->name('api.topics.dcat_category_list');
 
+// 支付回调
+Route::post('wechat/pay_notify','WeChatController@wxPayNotify')->name('api.wechat.pay_notify');
+
 // 获取商品列表
 Route::get('goods/list','GoodsController@getGoodsList')->name('api.goods.list');
 // 新增商品
