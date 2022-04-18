@@ -2,7 +2,6 @@
 
 namespace App\Admin\Metrics\Examples;
 
-use App\Models\User;
 use Dcat\Admin\Widgets\Metrics\Line;
 use Illuminate\Http\Request;
 
@@ -17,12 +16,12 @@ class NewUsers extends Line
     {
         parent::init();
 
-        $this->title('用户');
+        $this->title('New Users');
         $this->dropdown([
-            '0' => '全部',
-//            '28' => 'Last 28 Days',
-//            '30' => 'Last Month',
-//            '365' => 'Last Year',
+            '7' => 'Last 7 Days',
+            '28' => 'Last 28 Days',
+            '30' => 'Last Month',
+            '365' => 'Last Year',
         ]);
     }
 
@@ -35,44 +34,38 @@ class NewUsers extends Line
      */
     public function handle(Request $request)
     {
-//        $generator = function ($len, $min = 10, $max = 300) {
-//            for ($i = 0; $i <= $len; $i++) {
-//                yield mt_rand($min, $max);
-//            }
-//        };
-//
-//        switch ($request->get('option')) {
-//            case '365':
-//                // 卡片内容
-//                $this->withContent(mt_rand(1000, 5000).'k');
-//                // 图表数据
-//                $this->withChart(collect($generator(30))->toArray());
-//                break;
-//            case '30':
-//                // 卡片内容
-//                $this->withContent(mt_rand(400, 1000).'k');
-//                // 图表数据
-//                $this->withChart(collect($generator(30))->toArray());
-//                break;
-//            case '28':
-//                // 卡片内容
-//                $this->withContent(mt_rand(400, 1000).'k');
-//                // 图表数据
-//                $this->withChart(collect($generator(28))->toArray());
-//                break;
-//            case '7':
-//            default:
-//                // 卡片内容
-//                $this->withContent('89.2k');
-//                // 图表数据
-//                $this->withChart([28, 40, 36, 52, 38, 60, 55,]);
-//        }
-        $user_num = User::query()->count();
+        $generator = function ($len, $min = 10, $max = 300) {
+            for ($i = 0; $i <= $len; $i++) {
+                yield mt_rand($min, $max);
+            }
+        };
 
-        // 卡片内容
-        $this->withContent($user_num);
-        // 图表数据
-        $this->withChart([]);
+        switch ($request->get('option')) {
+            case '365':
+                // 卡片内容
+                $this->withContent(mt_rand(1000, 5000).'k');
+                // 图表数据
+                $this->withChart(collect($generator(30))->toArray());
+                break;
+            case '30':
+                // 卡片内容
+                $this->withContent(mt_rand(400, 1000).'k');
+                // 图表数据
+                $this->withChart(collect($generator(30))->toArray());
+                break;
+            case '28':
+                // 卡片内容
+                $this->withContent(mt_rand(400, 1000).'k');
+                // 图表数据
+                $this->withChart(collect($generator(28))->toArray());
+                break;
+            case '7':
+            default:
+                // 卡片内容
+                $this->withContent('89.2k');
+                // 图表数据
+                $this->withChart([28, 40, 36, 52, 38, 60, 55,]);
+        }
     }
 
     /**
