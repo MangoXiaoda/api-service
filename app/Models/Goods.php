@@ -43,4 +43,12 @@ class Goods extends Model
         return $this->hasMany(GoodsImg::class, 'goods_id', 'id');
     }
 
+    /**
+     * 访问器 拼接资源全地址
+     */
+    public function getThumbAttribute()
+    {
+        return fileUrlToWebUrl($this->attributes['thumb']);
+    }
+
 }
