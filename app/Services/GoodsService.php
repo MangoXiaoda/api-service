@@ -69,6 +69,12 @@ class GoodsService extends Service
         if (!$info)
             return r_result(202, '数据不存在，请重试');
 
+        // 处理商品详情图片
+        $goods_images = $info['goods_images'];
+        $info['images'] = [];
+        if ($goods_images)
+            $info['images'] = array_column($goods_images, 'image');
+
         return r_result(200, '获取成功', $info);
     }
 
