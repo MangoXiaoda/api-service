@@ -55,6 +55,14 @@ function delWebPrefixUrl($url) {
     if (strpos($url, 'storage/') !== false)
         return str_replace($app_url, '', $url);
 
+    // Dcat_admin 后台上传地址
+    if (strpos($url, '/uploads/files/') !== false || strpos($url, '/uploads/images/') !== false) {
+        // 已去除前缀不处理
+        if (strpos($url, $app_url) !== false){
+            return str_replace($app_url.'/uploads/', '', $url);
+        }
+    }
+
     return $url;
 }
 

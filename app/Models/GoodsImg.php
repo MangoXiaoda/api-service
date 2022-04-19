@@ -12,4 +12,11 @@ class GoodsImg extends Model
     protected $primaryKey = 'id';
 //    public $timestamps = false;
 
+    /**
+     * 访问器 拼接资源全地址
+     */
+    public function getImageAttribute()
+    {
+        return fileUrlToWebUrl($this->attributes['image']);
+    }
 }

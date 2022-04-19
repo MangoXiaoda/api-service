@@ -165,15 +165,19 @@ class GoodsService extends Service
     /**
      * 查询一条商品信息
      * @param $id
+     * @param false $is_with
      * @return array
      */
-    public static function queryOneGoods($id)
+    public static function queryOneGoods($id, $is_with = false)
     {
         if (!$id)
             return [];
 
         $info = Goods::query()
             ->where('id', $id)
+            ->when($is_with, function ($query) {
+                $query->with('goods_images:goods_id,image');
+            })
             ->first();
 
         return $info ? $info->toArray() : [];
