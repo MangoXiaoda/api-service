@@ -75,6 +75,8 @@ class GoodsService extends Service
         if ($goods_images)
             $info['images'] = array_column($goods_images, 'image');
 
+        unset($info['goods_images']);
+
         return r_result(200, '获取成功', $info);
     }
 
