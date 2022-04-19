@@ -64,7 +64,7 @@ class GoodsService extends Service
         if (!$gs_id)
             return r_result(201, '缺少商品id');
 
-        $info = self::queryOneGoods($gs_id);
+        $info = self::queryOneGoods($gs_id, true);
 
         if (!$info)
             return r_result(202, '数据不存在，请重试');
