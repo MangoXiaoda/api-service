@@ -27,6 +27,24 @@ class GoodsController extends Controller
     }
 
     /**
+     * 获取商品详情
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getGoodsDetail(Request $request)
+    {
+        $params = $request->all();
+
+        $service = new GoodsService();
+        $res = $service->getGoodsDetail($params);
+
+        if($res['code'] != 200)
+            return response()->json($this->type(ResponseCode::PARAM_ERROR)->httpResponse('',$res['desc']));
+
+        return response()->json($this->type(ResponseCode::REQUEST_SUCCESS)->httpResponse($res['data'],'操作成功'));
+    }
+
+    /**
      * 新增商品
      * @param GoodsRequest $request
      * @return \Illuminate\Http\JsonResponse

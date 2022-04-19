@@ -53,6 +53,26 @@ class GoodsService extends Service
     }
 
     /**
+     * 获取商品详情
+     * @param $params
+     * @return array|false|string
+     */
+    public function getGoodsDetail($params)
+    {
+        $gs_id = $params['gs_id'] ?? 0;
+
+        if (!$gs_id)
+            return r_result(201, '缺少商品id');
+
+        $info = self::queryOneGoods($gs_id);
+
+        if (!$info)
+            return r_result(202, '数据不存在，请重试');
+
+        return r_result(200, '获取成功', $info);
+    }
+
+    /**
      * 更新或新增商品
      * @param $data
      * @return array|false|string

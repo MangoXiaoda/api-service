@@ -21,6 +21,8 @@ Route::post('wechat/pay_notify','WeChatController@wxPayNotify')->name('api.wecha
 
 // 获取商品列表
 Route::get('goods/list','GoodsController@getGoodsList')->name('api.goods.list');
+// 获取商品详情
+Route::get('goods/detail','GoodsController@getGoodsDetail')->name('api.goods.detail');
 // 新增商品
 Route::post('goods/add','GoodsController@addGoods')->name('api.goods.add');
 // 编辑商品
