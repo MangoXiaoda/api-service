@@ -15,7 +15,7 @@ class GoodsController extends AdminController
     protected $title = '商品';
 
     /**
-     *
+     * 列表页
      * @return Grid
      */
     protected function grid()

@@ -17,8 +17,9 @@ Route::group([
     // 用户列表
     $router->resource('user/list', 'User\UserController');
 
-    // 用户列表
+    // 商品列表
     $router->resource('goods/list', 'Product\GoodsController');
-
+    // 商品分类列表
+    $router->resource('goods/category_list', 'Product\GoodsCategoryController');
 
 });
