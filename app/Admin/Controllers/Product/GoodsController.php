@@ -92,13 +92,12 @@ class GoodsController extends AdminController
                     if ($value) {
 
                         foreach ($value as $k => $v) {
-                            $resourceData[$k]['goods_id'] = $form->getKey();
                             $resourceData[$k]['image'] = delWebPrefixUrl($v);
                         }
 
                         GoodsImg::query()->where('goods_id', $form->getKey())->delete();
                     }
-
+                    $form->goods_images = $resourceData;
                     return $resourceData;
                 });
 
