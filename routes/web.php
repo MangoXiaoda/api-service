@@ -17,6 +17,6 @@ Route::get('/', function () {
     return response()->json([
         'code' => \App\Enums\Http\ResponseCode::REQUEST_SUCCESS,
         'data' => '',
-        'msg' => 'Welcome to LeJianAPIs service!'
+        'msg' => 'Welcome to MXAPIs service!'
     ]);
 });
