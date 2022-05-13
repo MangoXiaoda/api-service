@@ -29,7 +29,7 @@ class GoodsController extends AdminController
 
             $grid->column('title', '商品名称');
 
-            $grid->column('thumb', '商品主图')->image('http://xxx.com', 200, 200);
+            $grid->column('thumb', '商品主图')->image('http://xxx.com', 100, 100);
 
             $grid->column('content', '商品详情')->limit(30);
 
@@ -101,7 +101,7 @@ class GoodsController extends AdminController
                     return $resourceData;
                 });
 
-            $form->textarea('content', '商品详情');
+            $form->editor('content', '商品详情');
 
             $form->currency('price', '商品售价');
 
@@ -157,7 +157,7 @@ class GoodsController extends AdminController
                 return $img_html;
             });
 
-            $show->field('content', '商品详情');
+            $show->field('content', '商品详情')->unescape();
 
             $show->field('price', '商品价格');
 
